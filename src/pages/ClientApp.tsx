@@ -124,18 +124,6 @@ export function ClientApp({ onStaffLogin }: { onStaffLogin?: () => void }) {
 
   return (
     <div className="min-h-screen bg-white flex flex-col relative">
-      {/* Staff login - always visible top-right */}
-      {onStaffLogin && (
-        <button
-          onClick={onStaffLogin}
-          className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 h-10 rounded-full bg-slate-800 text-white hover:bg-slate-900 shadow-md transition-all"
-          title="Espace staff"
-        >
-          <ChefHat size={16} />
-          <span className="text-xs font-medium">Connexion staff</span>
-        </button>
-      )}
-
       {page !== 'home' && (
         <header className="bg-white/90 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30">
           <div className="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between max-w-6xl mx-auto">
@@ -200,7 +188,7 @@ function FloatingBubbles({
   cartCount: number;
 }) {
   return (
-    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none">
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none hidden sm:block">
       <div className="flex items-center justify-center gap-3 pointer-events-auto">
         <button
           onClick={() => onNav('cart')}
@@ -253,12 +241,13 @@ function FloatingBubbles({
 // ============= HOME PAGE =============
 function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onStaffLogin?: () => void }) {
   const { menus, loading } = useDailyMenu();
+  const { profile } = useAuth();
 
   const availableMenus = menus.filter((m) => m.quantity_available - m.quantity_sold > 0 && m.dish);
   const featuredDishes = availableMenus.slice(0, 3);
 
   return (
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col">
       {/* Hero section - clean, no image */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-16 max-w-6xl mx-auto w-full py-16 lg:py-24">
         <div className="flex items-center gap-2.5 mb-6">
@@ -300,6 +289,17 @@ function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onS
           </div>
         )}
       </div>
+
+      {/* Staff login - very discreet */}
+      {onStaffLogin && !profile && (
+        <button
+          onClick={onStaffLogin}
+          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-50 text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all flex items-center justify-center z-20"
+          title="Espace staff"
+        >
+          <ChefHat size={16} />
+        </button>
+      )}
     </div>
   );
 }
