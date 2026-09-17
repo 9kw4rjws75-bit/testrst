@@ -124,6 +124,18 @@ export function ClientApp({ onStaffLogin }: { onStaffLogin?: () => void }) {
 
   return (
     <div className="min-h-screen bg-white flex flex-col relative">
+      {/* Staff login - always visible top-right */}
+      {onStaffLogin && (
+        <button
+          onClick={onStaffLogin}
+          className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 h-10 rounded-full bg-slate-800 text-white hover:bg-slate-900 shadow-md transition-all"
+          title="Espace staff"
+        >
+          <ChefHat size={16} />
+          <span className="text-xs font-medium">Connexion staff</span>
+        </button>
+      )}
+
       {page !== 'home' && (
         <header className="bg-white/90 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30">
           <div className="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between max-w-6xl mx-auto">
@@ -241,7 +253,6 @@ function FloatingBubbles({
 // ============= HOME PAGE =============
 function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onStaffLogin?: () => void }) {
   const { menus, loading } = useDailyMenu();
-  const { profile } = useAuth();
 
   const availableMenus = menus.filter((m) => m.quantity_available - m.quantity_sold > 0 && m.dish);
   const featuredDishes = availableMenus.slice(0, 3);
@@ -289,18 +300,6 @@ function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onS
           </div>
         )}
       </div>
-
-      {/* Staff login - discreet but visible */}
-      {onStaffLogin && !profile && (
-        <button
-          onClick={onStaffLogin}
-          className="absolute top-5 right-5 flex items-center gap-2 px-3.5 h-10 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 hover:bg-slate-200 border border-slate-200 shadow-sm transition-all z-20"
-          title="Espace staff"
-        >
-          <ChefHat size={16} />
-          <span className="text-xs font-medium">Staff</span>
-        </button>
-      )}
     </div>
   );
 }
