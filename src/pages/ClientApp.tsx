@@ -1,5 +1,45 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChefHat, Utensils, Search, ShoppingCart, CalendarPlus, User, Clock, MapPin, Phone, Package, CircleCheck as CheckCircle2, X, Plus, Minus, Trash2, ArrowRight, Bike, Info, CreditCard, Wallet, Smartphone, Navigation, Loader as Loader2, LocateFixed, Banknote, Printer, ArrowLeft, Chrome as Home, CalendarDays, History, Gift, Trophy, Flame, Sparkles } from 'lucide-react';
+import {
+  ChefHat,
+  Utensils,
+  Search,
+  ShoppingCart,
+  CalendarPlus,
+  User,
+  Clock,
+  MapPin,
+  Phone,
+  Package,
+  CircleCheck as CheckCircle2,
+  X,
+  Plus,
+  Minus,
+  Trash2,
+  ArrowRight,
+  Bike,
+  Info,
+  CreditCard,
+  Wallet,
+  Smartphone,
+  Navigation,
+  Loader as Loader2,
+  LocateFixed,
+  Banknote,
+  Printer,
+  ArrowLeft,
+  Chrome as Home,
+  CalendarDays,
+  History,
+  Gift,
+  Trophy,
+  Flame,
+  Sparkles,
+  Salad,
+  Soup,
+  IceCream,
+  GlassWater,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useDailyMenu, createOrder, fetchOrderByNumber, createReservation, useRestaurantSettings, useWeeklyMenus, useClientOrders, useClientRewards, useActiveChallenges, useClientProgress, claimReward } from '@/lib/hooks';
 import {
@@ -33,14 +73,20 @@ import { cn } from '@/lib/utils';
 const DEFAULT_RESTAURANT_LAT = 14.6928;
 const DEFAULT_RESTAURANT_LNG = -17.4467;
 
-const HERO_IMAGE = 'https://images.pexels.com/photos/225201/pexels-photo-225201.jpeg?auto=compress&cs=tinysrgb&h=650&w=940';
-const DISH_IMAGE = 'https://images.pexels.com/photos/28705621/pexels-photo-28705621.jpeg?auto=compress&cs=tinysrgb&h=650&w=940';
-
 type ClientPage = 'home' | 'menu' | 'cart' | 'tracking' | 'reservation' | 'profile' | 'weekly';
+
+const CATEGORY_ICONS: Record<DishCategory | 'all', LucideIcon> = {
+  all: Utensils,
+  entree: Salad,
+  plat: Soup,
+  dessert: IceCream,
+  boisson: GlassWater,
+};
 
 export function ClientApp({ onStaffLogin }: { onStaffLogin?: () => void }) {
   const [page, setPage] = useState<ClientPage>('home');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [justAdded, setJustAdded] = useState<string | null>(null);
   const { settings } = useRestaurantSettings();
 
   const addToCart = (item: CartItem) => {
@@ -53,6 +99,8 @@ export function ClientApp({ onStaffLogin }: { onStaffLogin?: () => void }) {
       }
       return [...prev, item];
     });
+    setJustAdded(item.dish_id);
+    setTimeout(() => setJustAdded(null), 600);
   };
 
   const updateQty = (dishId: string, delta: number) => {
@@ -75,10 +123,9 @@ export function ClientApp({ onStaffLogin }: { onStaffLogin?: () => void }) {
   const cartTotal = cart.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col relative">
-      {/* Top bar - visible on non-home pages, responsive widths */}
+    <div className="min-h-screen bg-white flex flex-col relative">
       {page !== 'home' && (
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <header className="bg-white/90 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30">
           <div className="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between max-w-6xl mx-auto">
             <button onClick={() => setPage('home')} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
               <Home size={18} />
@@ -86,17 +133,17 @@ export function ClientApp({ onStaffLogin }: { onStaffLogin?: () => void }) {
             </button>
             <div className="flex items-center gap-2">
               {page !== 'menu' && (
-                <button onClick={() => setPage('menu')} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors">
+                <button onClick={() => setPage('menu')} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
                   <Utensils size={18} />
                 </button>
               )}
               {page !== 'tracking' && (
-                <button onClick={() => setPage('tracking')} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors">
+                <button onClick={() => setPage('tracking')} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
                   <Search size={18} />
                 </button>
               )}
               {page !== 'profile' && (
-                <button onClick={() => setPage('profile')} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors">
+                <button onClick={() => setPage('profile')} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
                   <User size={18} />
                 </button>
               )}
@@ -107,7 +154,7 @@ export function ClientApp({ onStaffLogin }: { onStaffLogin?: () => void }) {
 
       <div className="flex-1 w-full max-w-6xl mx-auto">
         {page === 'home' && <HomePage onNav={setPage} onStaffLogin={onStaffLogin} />}
-        {page === 'menu' && <MenuPage onAddToCart={addToCart} cart={cart} onNav={setPage} />}
+        {page === 'menu' && <MenuPage onAddToCart={addToCart} cart={cart} onNav={setPage} justAdded={justAdded} />}
         {page === 'cart' && (
           <CartPage
             cart={cart}
@@ -121,11 +168,10 @@ export function ClientApp({ onStaffLogin }: { onStaffLogin?: () => void }) {
         )}
         {page === 'tracking' && <TrackingPage />}
         {page === 'reservation' && <ReservationPage />}
-        {page === 'weekly' && <WeeklyMenuPage onAddToCart={addToCart} cart={cart} />}
+        {page === 'weekly' && <WeeklyMenuPage onAddToCart={addToCart} cart={cart} justAdded={justAdded} />}
         {page === 'profile' && <ProfilePage onNav={setPage} />}
       </div>
 
-      {/* Floating bubbles - discreet navigation */}
       <FloatingBubbles page={page} onNav={setPage} cartCount={cartCount} />
     </div>
   );
@@ -144,13 +190,12 @@ function FloatingBubbles({
   return (
     <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none hidden sm:block">
       <div className="flex items-center justify-center gap-3 pointer-events-auto">
-        {/* Panier */}
         <button
           onClick={() => onNav('cart')}
           className={cn(
             'w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all relative',
             page === 'cart'
-              ? 'bg-orange-600 text-white scale-110'
+              ? 'bg-green-600 text-white scale-110'
               : 'bg-white/90 backdrop-blur-md text-slate-600 hover:bg-white border border-slate-200'
           )}
           title="Mon panier"
@@ -163,13 +208,12 @@ function FloatingBubbles({
           )}
         </button>
 
-        {/* Suivi commande */}
         <button
           onClick={() => onNav('tracking')}
           className={cn(
             'w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all',
             page === 'tracking'
-              ? 'bg-orange-600 text-white scale-110'
+              ? 'bg-green-600 text-white scale-110'
               : 'bg-white/90 backdrop-blur-md text-slate-600 hover:bg-white border border-slate-200'
           )}
           title="Suivre ma commande"
@@ -177,13 +221,12 @@ function FloatingBubbles({
           <Package size={20} />
         </button>
 
-        {/* Profil */}
         <button
           onClick={() => onNav('profile')}
           className={cn(
             'w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all',
             page === 'profile'
-              ? 'bg-orange-600 text-white scale-110'
+              ? 'bg-green-600 text-white scale-110'
               : 'bg-white/90 backdrop-blur-md text-slate-600 hover:bg-white border border-slate-200'
           )}
           title="Mon profil"
@@ -195,7 +238,7 @@ function FloatingBubbles({
   );
 }
 
-// ============= HOME PAGE (VITRINE) =============
+// ============= HOME PAGE =============
 function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onStaffLogin?: () => void }) {
   const { menus, loading } = useDailyMenu();
   const { profile } = useAuth();
@@ -204,71 +247,59 @@ function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onS
   const featuredDishes = availableMenus.slice(0, 3);
 
   return (
-    <div className="h-screen overflow-hidden">
-      {/* Hero vitrine — full screen, split on desktop */}
-      <div className="relative h-full w-full overflow-hidden flex flex-col lg:flex-row">
-        {/* Image side */}
-        <div className="relative h-1/2 lg:h-full lg:w-1/2 overflow-hidden">
-          <img
-            src={HERO_IMAGE}
-            alt="Le Gourmet"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-slate-900/20 lg:to-slate-900/60" />
+    <div className="min-h-screen flex flex-col">
+      {/* Hero section - clean, no image */}
+      <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-16 max-w-6xl mx-auto w-full py-16 lg:py-24">
+        <div className="flex items-center gap-2.5 mb-6">
+          <div className="w-11 h-11 rounded-2xl bg-green-600 text-white flex items-center justify-center shadow-sm">
+            <ChefHat size={24} />
+          </div>
+          <span className="text-slate-900 font-bold text-lg tracking-wide">Le Gourmet</span>
         </div>
 
-        {/* Content side */}
-        <div className="relative h-1/2 lg:h-full lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col justify-center px-6 sm:px-10 lg:px-16 pb-24 lg:pb-10 -mt-20 lg:mt-0 rounded-t-3xl lg:rounded-none z-10">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-11 h-11 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg">
-              <ChefHat size={24} />
-            </div>
-            <span className="text-white font-bold text-lg tracking-wide">Le Gourmet</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
-            Cuisine raffinée,<br />préparée avec passion
-          </h1>
-          <p className="text-slate-300 text-sm sm:text-base mt-3 max-w-md">
-            Découvrez notre menu du jour et commandez en quelques clics, ou réservez votre table.
-          </p>
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.1] tracking-tight">
+          Cuisine raffinée,<br />
+          préparée avec passion
+        </h1>
+        <p className="text-slate-500 text-base sm:text-lg mt-5 max-w-md leading-relaxed">
+          Découvrez notre menu du jour et commandez en quelques clics, ou réservez votre table.
+        </p>
 
-          {/* Two main buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-6 max-w-md">
-            <button
-              onClick={() => onNav('menu')}
-              className="flex-1 bg-orange-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-orange-500/30 hover:bg-orange-600 active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <Utensils size={18} /> Voir le menu
-            </button>
-            <button
-              onClick={() => onNav('reservation')}
-              className="flex-1 bg-white/10 backdrop-blur-md text-white font-semibold py-3.5 rounded-xl border border-white/20 hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <CalendarPlus size={18} /> Réserver
-            </button>
-          </div>
-
-          {/* Featured dishes preview on desktop */}
-          {featuredDishes.length > 0 && (
-            <div className="hidden lg:flex gap-3 mt-8">
-              {featuredDishes.map((m) => (
-                <FeaturedDishRow key={m.id} menu={m} onNav={onNav} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Staff login - very discreet */}
-        {onStaffLogin && !profile && (
+        <div className="flex flex-col sm:flex-row gap-3 mt-8 max-w-md">
           <button
-            onClick={onStaffLogin}
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white/60 hover:text-white/90 hover:bg-white/20 transition-all flex items-center justify-center z-20"
-            title="Espace staff"
+            onClick={() => onNav('menu')}
+            className="flex-1 bg-green-600 text-white font-semibold py-4 rounded-2xl shadow-sm hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-base"
           >
-            <ChefHat size={16} />
+            Commander maintenant <ArrowRight size={18} />
           </button>
+          <button
+            onClick={() => onNav('reservation')}
+            className="flex-1 bg-slate-50 text-slate-700 font-semibold py-4 rounded-2xl border border-slate-200 hover:bg-slate-100 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-base"
+          >
+            <CalendarPlus size={18} /> Réserver
+          </button>
+        </div>
+
+        {/* Featured dishes preview on desktop */}
+        {featuredDishes.length > 0 && !loading && (
+          <div className="hidden lg:flex gap-4 mt-12">
+            {featuredDishes.map((m) => (
+              <FeaturedDishRow key={m.id} menu={m} onNav={onNav} />
+            ))}
+          </div>
         )}
       </div>
+
+      {/* Staff login - very discreet */}
+      {onStaffLogin && !profile && (
+        <button
+          onClick={onStaffLogin}
+          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-50 text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all flex items-center justify-center z-20"
+          title="Espace staff"
+        >
+          <ChefHat size={16} />
+        </button>
+      )}
     </div>
   );
 }
@@ -278,30 +309,26 @@ function FeaturedDishRow({ menu, onNav }: { menu: DailyMenu; onNav: (p: ClientPa
   if (!menu.dish) return null;
 
   return (
-    <Card className="p-3.5 w-64" onClick={() => onNav('menu')}>
+    <Card className="p-4 w-64 border-slate-100 shadow-sm hover:shadow-md transition-shadow" onClick={() => onNav('menu')}>
       <div className="flex gap-3">
-        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-          {menu.dish.image_url ? (
-            <img src={menu.dish.image_url} alt={menu.dish.name} className="w-full h-full object-cover" />
-          ) : (
-            <Utensils size={24} className="text-orange-400" />
-          )}
+        <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0">
+          <Utensils size={20} className="text-slate-300" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-sm text-slate-900 leading-tight">{menu.dish.name}</h3>
-            <span className="font-bold text-orange-600 text-sm whitespace-nowrap">
+            <span className="font-bold text-green-600 text-sm whitespace-nowrap">
               {formatPrice(menu.dish.price)}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{menu.dish.description}</p>
+          <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{menu.dish.description}</p>
           <div className="flex items-center gap-2 mt-1.5">
             <Badge className={DISH_CATEGORY_COLORS[menu.dish.category]}>
               {DISH_CATEGORY_LABELS[menu.dish.category]}
             </Badge>
             <span className={cn(
               'text-xs font-medium',
-              remaining <= 3 ? 'text-red-600' : 'text-green-600'
+              remaining <= 3 ? 'text-red-500' : 'text-green-600'
             )}>
               {remaining > 0 ? `${remaining} dispo` : 'Épuisé'}
             </span>
@@ -317,10 +344,12 @@ function MenuPage({
   onAddToCart,
   cart,
   onNav,
+  justAdded,
 }: {
   onAddToCart: (item: CartItem) => void;
   cart: CartItem[];
   onNav: (p: ClientPage) => void;
+  justAdded: string | null;
 }) {
   const { menus, loading: menusLoading } = useDailyMenu();
   const [category, setCategory] = useState<DishCategory | 'all'>('all');
@@ -347,61 +376,72 @@ function MenuPage({
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-24 sm:pb-10">
-      <div className="relative mb-3 max-w-2xl mx-auto">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      {/* Search */}
+      <div className="relative mb-4 max-w-2xl mx-auto">
+        <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          placeholder="Rechercher un plat..."
+          className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
         />
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategory(cat)}
-            className={cn(
-              'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all',
-              category === cat
-                ? 'bg-orange-600 text-white'
-                : 'bg-white text-slate-600 border border-slate-200'
-            )}
-          >
-            {cat === 'all' ? 'Tout' : DISH_CATEGORY_LABELS[cat]}
-          </button>
-        ))}
+      {/* Category filter - icon based */}
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center scrollbar-hide">
+        {categories.map((cat) => {
+          const Icon = CATEGORY_ICONS[cat];
+          const isActive = category === cat;
+          return (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className={cn(
+                'flex flex-col items-center gap-1.5 px-5 py-3 rounded-2xl transition-all min-w-[72px]',
+                isActive
+                  ? 'bg-green-600 text-white shadow-sm'
+                  : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+              )}
+            >
+              <Icon size={22} />
+              <span className="text-xs font-medium whitespace-nowrap">
+                {cat === 'all' ? 'Tout' : DISH_CATEGORY_LABELS[cat]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="max-w-5xl mx-auto">
+        {/* Weekly menu link */}
         <button
           onClick={() => onNav('weekly')}
-          className="w-full mb-4 flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 hover:border-blue-300 transition-all"
+          className="w-full mb-5 flex items-center justify-between px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all"
         >
-          <div className="flex items-center gap-2">
-            <CalendarDays size={18} className="text-blue-600" />
-            <span className="text-sm font-medium text-blue-700">Voir le menu de la semaine</span>
+          <div className="flex items-center gap-2.5">
+            <CalendarDays size={18} className="text-slate-500" />
+            <span className="text-sm font-medium text-slate-700">Voir le menu de la semaine</span>
           </div>
-          <ArrowRight size={16} className="text-blue-400" />
+          <ArrowRight size={16} className="text-slate-400" />
         </button>
 
         {menusLoading ? (
-          <div className="py-12"><LoadingSpinner /></div>
+          <div className="py-16"><LoadingSpinner /></div>
         ) : (
           <>
             {filteredFeatured.length > 0 && (
               <>
-                <h2 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-orange-500" />
+                <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                   Menu du jour
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
                   {filteredFeatured.map((m) => (
                     <MenuDishCard
                       key={m.id}
                       dish={m.dish!}
+                      remaining={m.quantity_available - m.quantity_sold}
                       onAdd={() =>
                         onAddToCart({
                           dish_id: m.dish_id,
@@ -412,6 +452,7 @@ function MenuPage({
                         })
                       }
                       inCart={cart.find((c) => c.dish_id === m.dish_id)?.quantity || 0}
+                      justAdded={justAdded === m.dish_id}
                     />
                   ))}
                 </div>
@@ -420,8 +461,8 @@ function MenuPage({
 
             {filteredOther.length > 0 && (
               <>
-                <h2 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-slate-400" />
+                <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                   Autres plats disponibles
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -429,6 +470,7 @@ function MenuPage({
                     <MenuDishCard
                       key={m.id}
                       dish={m.dish!}
+                      remaining={m.quantity_available - m.quantity_sold}
                       onAdd={() =>
                         onAddToCart({
                           dish_id: m.dish_id,
@@ -439,6 +481,7 @@ function MenuPage({
                         })
                       }
                       inCart={cart.find((c) => c.dish_id === m.dish_id)?.quantity || 0}
+                      justAdded={justAdded === m.dish_id}
                     />
                   ))}
                 </div>
@@ -461,44 +504,57 @@ function MenuPage({
 
 function MenuDishCard({
   dish,
+  remaining,
   onAdd,
   inCart,
+  justAdded,
 }: {
   dish: Dish;
+  remaining: number;
   onAdd: () => void;
   inCart: number;
+  justAdded: boolean;
 }) {
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
-      <div className="flex flex-col h-full">
-        <div className="w-full h-32 sm:h-28 bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center flex-shrink-0">
-          {dish.image_url ? (
-            <img src={dish.image_url} alt={dish.name} className="w-full h-full object-cover" />
-          ) : (
-            <Utensils size={28} className="text-orange-400" />
-          )}
-        </div>
-        <div className="flex-1 p-3 flex flex-col">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm text-slate-900">{dish.name}</h3>
-              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{dish.description}</p>
-            </div>
+    <Card className="p-4 border-slate-100 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+      {/* Empty image placeholder */}
+      <div className="w-full h-28 rounded-xl bg-slate-50 flex items-center justify-center mb-3">
+        <Utensils size={24} className="text-slate-200" />
+      </div>
+
+      <div className="flex-1 flex flex-col">
+        <h3 className="font-semibold text-sm text-slate-900 leading-tight">{dish.name}</h3>
+        <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">{dish.description}</p>
+
+        <div className="flex items-center justify-between mt-auto pt-3">
+          <div className="flex flex-col">
+            <span className="font-bold text-base text-slate-900">{formatPrice(dish.price)}</span>
+            {remaining <= 5 && remaining > 0 && (
+              <span className="text-[10px] text-amber-500 font-medium">{remaining} restantes</span>
+            )}
           </div>
-          <div className="flex items-center justify-between mt-auto pt-2">
-            <span className="font-bold text-orange-600">{formatPrice(dish.price)}</span>
-            <Button
-              size="sm"
-              onClick={onAdd}
-              className="h-8 px-3"
-            >
-              {inCart > 0 ? (
-                <><Plus size={14} className="mr-0.5" /> {inCart}</>
-              ) : (
-                <><Plus size={14} className="mr-0.5" /> Ajouter</>
-              )}
-            </Button>
-          </div>
+          <button
+            onClick={onAdd}
+            className={cn(
+              'w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90',
+              justAdded
+                ? 'bg-green-100 text-green-600 scale-110'
+                : inCart > 0
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+            )}
+          >
+            {justAdded ? (
+              <CheckCircle2 size={18} />
+            ) : inCart > 0 ? (
+              <span className="flex items-center gap-0.5">
+                <Plus size={16} />
+                <span className="text-xs font-bold">{inCart}</span>
+              </span>
+            ) : (
+              <Plus size={18} />
+            )}
+          </button>
         </div>
       </div>
     </Card>
@@ -511,9 +567,11 @@ const DAY_NAMES = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'
 function WeeklyMenuPage({
   onAddToCart,
   cart,
+  justAdded,
 }: {
   onAddToCart: (item: CartItem) => void;
   cart: CartItem[];
+  justAdded: string | null;
 }) {
   const { weeklyMenus, loading } = useWeeklyMenus();
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay());
@@ -525,24 +583,24 @@ function WeeklyMenuPage({
 
   return (
     <div className="px-4 pt-4 pb-24">
-      <div className="mb-4">
-        <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-2">
-          <CalendarDays size={24} className="text-blue-600" />
+      <div className="mb-5">
+        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
+          <CalendarDays size={24} className="text-slate-500" />
         </div>
-        <h2 className="text-lg font-bold text-slate-900">Menu de la semaine</h2>
-        <p className="text-sm text-slate-500 mt-0.5">Découvrez nos plats planifiés chaque jour</p>
+        <h2 className="text-xl font-bold text-slate-900">Menu de la semaine</h2>
+        <p className="text-sm text-slate-400 mt-1">Découvrez nos plats planifiés chaque jour</p>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-3 -mx-4 px-4">
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 -mx-4 px-4 scrollbar-hide">
         {days.map((d) => (
           <button
             key={d}
             onClick={() => setSelectedDay(d)}
             className={cn(
-              'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all',
+              'px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all',
               selectedDay === d
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-slate-600 border border-slate-200'
+                ? 'bg-green-600 text-white shadow-sm'
+                : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
             )}
           >
             {DAY_NAMES[d]}
@@ -559,11 +617,12 @@ function WeeklyMenuPage({
           description={`Aucun plat n'est planifié pour ${DAY_NAMES[selectedDay]}.`}
         />
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {currentDayMenus.map((m) => (
             <MenuDishCard
               key={m.id}
               dish={m.dish!}
+              remaining={99}
               onAdd={() =>
                 onAddToCart({
                   dish_id: m.dish_id,
@@ -574,6 +633,7 @@ function WeeklyMenuPage({
                 })
               }
               inCart={cart.find((c) => c.dish_id === m.dish_id)?.quantity || 0}
+              justAdded={justAdded === m.dish_id}
             />
           ))}
         </div>
@@ -749,17 +809,17 @@ function CartPage({
     return (
       <div className="px-4 pt-8 pb-24">
         <div className="flex flex-col items-center text-center py-8">
-          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-4">
             <CheckCircle2 size={40} className="text-green-600" />
           </div>
           <h2 className="text-xl font-bold text-slate-900">Commande confirmée !</h2>
-          <p className="text-slate-500 text-sm mt-2">
+          <p className="text-slate-400 text-sm mt-2">
             Conservez votre numéro de commande pour suivre sa préparation.
           </p>
-          <div className="mt-6 w-full">
-            <Card className="p-6 text-center">
+          <div className="mt-6 w-full max-w-sm">
+            <Card className="p-6 text-center border-slate-100">
               <p className="text-xs text-slate-400 uppercase tracking-wide">Votre numéro de commande</p>
-              <p className="text-3xl font-bold text-orange-600 mt-2">{successOrder.order_number}</p>
+              <p className="text-3xl font-bold text-green-600 mt-2">{successOrder.order_number}</p>
               <p className="text-sm text-slate-500 mt-3">
                 {ORDER_TYPE_LABELS[successOrder.type]} • {formatPrice(successOrder.total_amount)}
               </p>
@@ -770,7 +830,7 @@ function CartPage({
               )}
             </Card>
           </div>
-          <div className="flex gap-3 mt-6 w-full">
+          <div className="flex gap-3 mt-6 w-full max-w-sm">
             <Button
               variant="outline"
               className="flex-1"
@@ -814,8 +874,8 @@ function CartPage({
   }
 
   return (
-    <div className="px-4 pt-4 pb-24">
-      <div className="flex items-center justify-between mb-4">
+    <div className="px-4 pt-4 pb-24 max-w-2xl mx-auto">
+      <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-bold text-slate-900">{cart.length} article(s)</h2>
         <button
           onClick={onClear}
@@ -827,23 +887,23 @@ function CartPage({
 
       <div className="space-y-2.5">
         {cart.map((item) => (
-          <Card key={item.dish_id} className="p-3">
+          <Card key={item.dish_id} className="p-4 border-slate-100">
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm text-slate-900">{item.dish_name}</h3>
-                <p className="text-xs text-slate-500">{formatPrice(item.unit_price)} / unité</p>
+                <p className="text-xs text-slate-400">{formatPrice(item.unit_price)} / unité</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onUpdateQty(item.dish_id, -1)}
-                  className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200"
+                  className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors"
                 >
                   <Minus size={14} />
                 </button>
                 <span className="font-semibold text-sm w-6 text-center">{item.quantity}</span>
                 <button
                   onClick={() => onUpdateQty(item.dish_id, 1)}
-                  className="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 hover:bg-orange-200"
+                  className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors"
                 >
                   <Plus size={14} />
                 </button>
@@ -859,10 +919,10 @@ function CartPage({
       </div>
 
       <div className="mt-6">
-        <Card className="p-4 bg-orange-50 border-orange-200">
+        <Card className="p-5 bg-slate-50 border-slate-100">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-900">Total</span>
-            <span className="text-2xl font-bold text-orange-600">{formatPrice(cartTotal)}</span>
+            <span className="text-2xl font-bold text-slate-900">{formatPrice(cartTotal)}</span>
           </div>
         </Card>
       </div>
@@ -889,9 +949,9 @@ function CartPage({
               <button
                 onClick={() => setOrderType('sur_place')}
                 className={cn(
-                  'flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all text-sm font-medium',
+                  'flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 transition-all text-sm font-medium',
                   orderType === 'sur_place'
-                    ? 'border-orange-500 bg-orange-50 text-orange-700'
+                    ? 'border-green-500 bg-green-50 text-green-700'
                     : 'border-slate-200 text-slate-500'
                 )}
               >
@@ -900,9 +960,9 @@ function CartPage({
               <button
                 onClick={() => setOrderType('livraison')}
                 className={cn(
-                  'flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all text-sm font-medium',
+                  'flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 transition-all text-sm font-medium',
                   orderType === 'livraison'
-                    ? 'border-orange-500 bg-orange-50 text-orange-700'
+                    ? 'border-green-500 bg-green-50 text-green-700'
                     : 'border-slate-200 text-slate-500'
                 )}
               >
@@ -943,12 +1003,12 @@ function CartPage({
                     setDeliveryLng(null);
                   }}
                   placeholder="123 rue de Paris, Dakar"
-                  className="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm"
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm"
                 />
                 <button
                   onClick={useMyLocation}
                   disabled={locating}
-                  className="px-3 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-all flex items-center gap-1.5 whitespace-nowrap"
+                  className="px-3 py-2.5 rounded-lg bg-slate-800 text-white text-sm font-medium hover:bg-slate-900 transition-all flex items-center gap-1.5 whitespace-nowrap"
                 >
                   {locating ? <Loader2 size={16} className="animate-spin" /> : <LocateFixed size={16} />}
                   Ma position
@@ -964,14 +1024,14 @@ function CartPage({
               />
 
               {deliveryKm !== null && (
-                <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-slate-50 border border-slate-200">
                   <div className="flex items-center gap-2">
-                    <Navigation size={16} className="text-blue-600" />
-                    <span className="text-sm text-blue-700 font-medium">
+                    <Navigation size={16} className="text-slate-500" />
+                    <span className="text-sm text-slate-700 font-medium">
                       Distance: {deliveryKm.toFixed(1)} km
                     </span>
                   </div>
-                  <span className="text-sm font-bold text-blue-700">
+                  <span className="text-sm font-bold text-slate-900">
                     Frais: {formatPrice(deliveryFee)}
                   </span>
                 </div>
@@ -1026,7 +1086,7 @@ function CartPage({
             rows={2}
           />
 
-          <Card className="p-4 bg-slate-50">
+          <Card className="p-4 bg-slate-50 border-slate-100">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-500">Sous-total</span>
@@ -1040,7 +1100,7 @@ function CartPage({
               )}
               <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
                 <span className="font-semibold text-slate-900">Total à payer</span>
-                <span className="text-xl font-bold text-orange-600">{formatPrice(grandTotal)}</span>
+                <span className="text-xl font-bold text-green-600">{formatPrice(grandTotal)}</span>
               </div>
             </div>
           </Card>
@@ -1076,9 +1136,9 @@ function PaymentMethodButton({
     <button
       onClick={onClick}
       className={cn(
-        'flex items-center gap-2.5 px-3 py-3 rounded-lg border-2 transition-all text-sm font-medium',
+        'flex items-center gap-2.5 px-3 py-3.5 rounded-xl border-2 transition-all text-sm font-medium',
         selected
-          ? 'border-orange-500 bg-orange-50 text-orange-700'
+          ? 'border-green-500 bg-green-50 text-green-700'
           : 'border-slate-200 text-slate-500 hover:border-slate-300'
       )}
     >
@@ -1102,7 +1162,6 @@ function DeliveryMapPreview({
   restLat: number;
   restLng: number;
 }) {
-  const mapRef = useRef<HTMLDivElement>(null);
   const [mapUrl, setMapUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -1121,9 +1180,9 @@ function DeliveryMapPreview({
 
   if (deliveryLat === null || deliveryLng === null) {
     return (
-      <div className="w-full h-32 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+      <div className="w-full h-32 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
         <div className="text-center">
-          <MapPin size={24} className="text-slate-400 mx-auto mb-1" />
+          <MapPin size={24} className="text-slate-300 mx-auto mb-1" />
           <p className="text-xs text-slate-400">
             {deliveryKm === null ? 'Entrez l\'adresse ou utilisez votre position' : 'Calcul de l\'itinéraire...'}
           </p>
@@ -1144,7 +1203,7 @@ function DeliveryMapPreview({
         />
       )}
       <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 text-xs font-medium text-slate-700 flex items-center gap-1">
-        <Navigation size={12} className="text-blue-600" />
+        <Navigation size={12} className="text-slate-500" />
         {deliveryKm !== null ? `${deliveryKm.toFixed(1)} km` : '...'}
       </div>
     </div>
@@ -1231,22 +1290,22 @@ function TrackingPage() {
   };
 
   return (
-    <div className="px-4 pt-4 pb-24">
+    <div className="px-4 pt-4 pb-24 max-w-2xl mx-auto">
       <div className="relative mb-6">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
           value={orderNumber}
           onChange={(e) => setOrderNumber(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           placeholder="CMD-XXXXXX"
-          className="w-full pl-10 pr-24 py-3 rounded-xl bg-white border border-slate-200 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="w-full pl-11 pr-24 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
         />
         <Button
           size="sm"
           onClick={handleSearch}
           disabled={loading}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8"
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-9"
         >
           {loading ? '...' : 'Suivre'}
         </Button>
@@ -1268,7 +1327,7 @@ function TrackingPage() {
 
       {order && (
         <div className="space-y-4">
-          <Card className="p-4">
+          <Card className="p-5 border-slate-100">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-xs text-slate-400">Commande</p>
@@ -1294,7 +1353,7 @@ function TrackingPage() {
             )}
           </Card>
 
-          <Card className="p-4">
+          <Card className="p-5 border-slate-100">
             <h3 className="font-semibold text-sm text-slate-900 mb-4">Suivi de votre commande</h3>
             <div className="space-y-1">
               {statusSteps.map((step, idx) => {
@@ -1316,9 +1375,9 @@ function TrackingPage() {
                         className={cn(
                           'w-8 h-8 rounded-full flex items-center justify-center transition-all',
                           isDone
-                            ? 'bg-orange-500 text-white'
+                            ? 'bg-green-600 text-white'
                             : 'bg-slate-100 text-slate-400',
-                          isCurrent && 'ring-4 ring-orange-100'
+                          isCurrent && 'ring-4 ring-green-100'
                         )}
                       >
                         {icons[step]}
@@ -1327,7 +1386,7 @@ function TrackingPage() {
                         <div
                           className={cn(
                             'w-0.5 h-8',
-                            idx < currentStep ? 'bg-orange-500' : 'bg-slate-200'
+                            idx < currentStep ? 'bg-green-600' : 'bg-slate-200'
                           )}
                         />
                       )}
@@ -1346,7 +1405,7 @@ function TrackingPage() {
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card className="p-5 border-slate-100">
             <h3 className="font-semibold text-sm text-slate-900 mb-3">Détails de la commande</h3>
             <div className="space-y-2">
               {order.order_items?.map((item: any) => (
@@ -1366,7 +1425,7 @@ function TrackingPage() {
             )}
             <div className="border-t border-slate-200 mt-3 pt-3 flex items-center justify-between">
               <span className="font-semibold text-slate-900">Total</span>
-              <span className="font-bold text-orange-600">{formatPrice(order.total_amount)}</span>
+              <span className="font-bold text-green-600">{formatPrice(order.total_amount)}</span>
             </div>
           </Card>
 
@@ -1377,9 +1436,9 @@ function TrackingPage() {
           )}
 
           {order.type === 'livraison' && order.delivery?.[0] && (
-            <Card className="p-4 bg-blue-50 border-blue-200">
+            <Card className="p-5 bg-slate-50 border-slate-100">
               <div className="flex items-center gap-2 mb-3">
-                <Bike size={18} className="text-blue-600" />
+                <Bike size={18} className="text-slate-500" />
                 <h3 className="font-semibold text-sm text-slate-900">Informations du livreur</h3>
               </div>
               {order.delivery[0].delivery_person ? (
@@ -1391,7 +1450,7 @@ function TrackingPage() {
                   {order.delivery[0].delivery_person.phone && (
                     <a
                       href={`tel:${order.delivery[0].delivery_person.phone}`}
-                      className="flex items-center gap-2 text-sm text-blue-600 font-medium"
+                      className="flex items-center gap-2 text-sm text-green-600 font-medium"
                     >
                       <Phone size={16} />
                       {order.delivery[0].delivery_person.phone}
@@ -1411,7 +1470,7 @@ function TrackingPage() {
           )}
 
           {order.type === 'sur_place' && order.table_number && (
-            <Card className="p-4">
+            <Card className="p-5 border-slate-100">
               <div className="flex items-center gap-2 text-sm">
                 <Info size={16} className="text-slate-400" />
                 <span className="text-slate-600">Table: <strong>{order.table_number}</strong></span>
@@ -1470,11 +1529,11 @@ function ReservationPage() {
     return (
       <div className="px-4 pt-8 pb-24">
         <div className="flex flex-col items-center text-center py-8">
-          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-4">
             <CheckCircle2 size={40} className="text-green-600" />
           </div>
           <h2 className="text-xl font-bold text-slate-900">Réservation envoyée !</h2>
-          <p className="text-slate-500 text-sm mt-2">
+          <p className="text-slate-400 text-sm mt-2">
             Nous vous contacterons pour confirmer votre réservation.
           </p>
           <Button
@@ -1495,13 +1554,13 @@ function ReservationPage() {
   }
 
   return (
-    <div className="px-4 pt-4 pb-24">
+    <div className="px-4 pt-4 pb-24 max-w-2xl mx-auto">
       <div className="mb-6">
-        <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center mb-3">
-          <CalendarPlus size={24} className="text-teal-600" />
+        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
+          <CalendarPlus size={24} className="text-slate-500" />
         </div>
-        <h2 className="text-lg font-bold text-slate-900">Réserver une table</h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <h2 className="text-xl font-bold text-slate-900">Réserver une table</h2>
+        <p className="text-sm text-slate-400 mt-1">
           Réservez votre table pour une date future. Nous confirmerons votre demande par téléphone.
         </p>
       </div>
@@ -1571,11 +1630,11 @@ function ProfilePage({ onNav }: { onNav: (p: ClientPage) => void }) {
     return (
       <div className="px-4 pt-8 pb-24">
         <div className="flex flex-col items-center text-center py-8">
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <User size={28} className="text-slate-400" />
+          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+            <User size={28} className="text-slate-300" />
           </div>
           <h2 className="text-lg font-bold text-slate-900">Vous n'êtes pas connecté</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-400 mt-1">
             Créez un compte pour accéder à vos commandes et réservations.
           </p>
           <p className="text-xs text-slate-400 mt-3">
@@ -1591,38 +1650,38 @@ function ProfilePage({ onNav }: { onNav: (p: ClientPage) => void }) {
   const pastOrders = orders.filter((o) => !activeStatuses.includes(o.status));
 
   return (
-    <div className="px-4 pt-4 pb-24">
+    <div className="px-4 pt-4 pb-24 max-w-2xl mx-auto">
       <div className="flex flex-col items-center text-center py-4">
-        <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center mb-3">
-          <User size={36} className="text-orange-600" />
+        <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-3">
+          <User size={36} className="text-green-600" />
         </div>
         <h2 className="text-lg font-bold text-slate-900">{profile.full_name || 'Client'}</h2>
-        <p className="text-sm text-slate-500">{profile.email}</p>
+        <p className="text-sm text-slate-400">{profile.email}</p>
         {profile.phone && <p className="text-sm text-slate-400">{profile.phone}</p>}
       </div>
 
       <div className="flex gap-2 mt-4">
-        <Card className="p-3 flex-1" onClick={() => onNav('tracking')}>
+        <Card className="p-3 flex-1 border-slate-100" onClick={() => onNav('tracking')}>
           <div className="flex flex-col items-center text-center gap-1">
-            <Package size={20} className="text-blue-600" />
+            <Package size={20} className="text-slate-500" />
             <span className="text-xs font-medium text-slate-700">Suivre</span>
           </div>
         </Card>
-        <Card className="p-3 flex-1" onClick={() => onNav('reservation')}>
+        <Card className="p-3 flex-1 border-slate-100" onClick={() => onNav('reservation')}>
           <div className="flex flex-col items-center text-center gap-1">
-            <CalendarPlus size={20} className="text-teal-600" />
+            <CalendarPlus size={20} className="text-slate-500" />
             <span className="text-xs font-medium text-slate-700">Réserver</span>
           </div>
         </Card>
-        <Card className="p-3 flex-1" onClick={() => setChallengesModal(true)}>
+        <Card className="p-3 flex-1 border-slate-100" onClick={() => setChallengesModal(true)}>
           <div className="flex flex-col items-center text-center gap-1">
-            <Trophy size={20} className="text-amber-600" />
+            <Trophy size={20} className="text-amber-500" />
             <span className="text-xs font-medium text-slate-700">Défis</span>
           </div>
         </Card>
-        <Card className="p-3 flex-1 relative" onClick={() => setRewardsModal(true)}>
+        <Card className="p-3 flex-1 border-slate-100 relative" onClick={() => setRewardsModal(true)}>
           <div className="flex flex-col items-center text-center gap-1">
-            <Gift size={20} className="text-orange-600" />
+            <Gift size={20} className="text-green-600" />
             <span className="text-xs font-medium text-slate-700">Cadeaux</span>
           </div>
         </Card>
@@ -1634,8 +1693,8 @@ function ProfilePage({ onNav }: { onNav: (p: ClientPage) => void }) {
         <>
           {currentOrders.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5">
-                <Package size={16} className="text-orange-600" />
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Package size={14} className="text-green-600" />
                 Commandes en cours
               </h3>
               <div className="space-y-2">
@@ -1648,8 +1707,8 @@ function ProfilePage({ onNav }: { onNav: (p: ClientPage) => void }) {
 
           {pastOrders.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5">
-                <History size={16} className="text-slate-500" />
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <History size={14} className="text-slate-400" />
                 Historique
               </h3>
               <div className="space-y-2">
@@ -1705,11 +1764,11 @@ function RewardsModal({ open, onClose, clientId }: { open: boolean; onClose: () 
         <div className="py-8"><LoadingSpinner /></div>
       ) : rewards.length === 0 ? (
         <div className="flex flex-col items-center text-center py-8">
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <Gift size={28} className="text-slate-400" />
+          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+            <Gift size={28} className="text-slate-300" />
           </div>
           <h3 className="font-semibold text-slate-700">Aucun cadeau pour le moment</h3>
-          <p className="text-sm text-slate-500 mt-1 max-w-xs">
+          <p className="text-sm text-slate-400 mt-1 max-w-xs">
             Participez aux défis du restaurant pour gagner des récompenses !
           </p>
         </div>
@@ -1717,7 +1776,7 @@ function RewardsModal({ open, onClose, clientId }: { open: boolean; onClose: () 
         <div className="space-y-4">
           {availableRewards.length > 0 && (
             <div>
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                 <Sparkles size={14} className="text-amber-500" />
                 A récupérer ({availableRewards.length})
               </h4>
@@ -1736,7 +1795,7 @@ function RewardsModal({ open, onClose, clientId }: { open: boolean; onClose: () 
 
           {claimedRewards.length > 0 && (
             <div>
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-green-500" />
                 Récupérés ({claimedRewards.length})
               </h4>
@@ -1750,7 +1809,7 @@ function RewardsModal({ open, onClose, clientId }: { open: boolean; onClose: () 
 
           {expiredRewards.length > 0 && (
             <div>
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
                 Expirés ({expiredRewards.length})
               </h4>
               <div className="space-y-2 opacity-60">
@@ -1824,13 +1883,13 @@ function RewardCard({
               </div>
               <div className="text-right">
                 {reward.discount_type === 'percentage' && reward.discount_value && (
-                  <p className="text-xs text-orange-300">-{Number(reward.discount_value)}%</p>
+                  <p className="text-xs text-green-300">-{Number(reward.discount_value)}%</p>
                 )}
                 {reward.discount_type === 'fixed' && reward.discount_value && (
-                  <p className="text-xs text-orange-300">-{formatPrice(Number(reward.discount_value))}</p>
+                  <p className="text-xs text-green-300">-{formatPrice(Number(reward.discount_value))}</p>
                 )}
                 {reward.discount_type === 'free_order' && (
-                  <p className="text-xs text-orange-300">Commande gratuite</p>
+                  <p className="text-xs text-green-300">Commande gratuite</p>
                 )}
               </div>
             </div>
@@ -1883,11 +1942,11 @@ function ChallengesModal({ open, onClose, clientId }: { open: boolean; onClose: 
         <div className="py-8"><LoadingSpinner /></div>
       ) : challenges.length === 0 ? (
         <div className="flex flex-col items-center text-center py-8">
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <Trophy size={28} className="text-slate-400" />
+          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+            <Trophy size={28} className="text-slate-300" />
           </div>
           <h3 className="font-semibold text-slate-700">Aucun défi actif</h3>
-          <p className="text-sm text-slate-500 mt-1 max-w-xs">
+          <p className="text-sm text-slate-400 mt-1 max-w-xs">
             Revenez bientôt pour participer à de nouveaux défis et gagner des récompenses !
           </p>
         </div>
@@ -1901,11 +1960,11 @@ function ChallengesModal({ open, onClose, clientId }: { open: boolean; onClose: 
             const isCompleted = prog?.completed || currentVal >= targetVal;
 
             return (
-              <div key={ch.id} className="p-4 rounded-xl border border-slate-200 bg-white">
+              <div key={ch.id} className="p-4 rounded-xl border border-slate-100 bg-white">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
-                      <Trophy size={18} className="text-amber-600" />
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+                      <Trophy size={18} className="text-amber-500" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-sm text-slate-900">{ch.title}</h4>
@@ -1936,7 +1995,7 @@ function ChallengesModal({ open, onClose, clientId }: { open: boolean; onClose: 
                     <div
                       className={cn(
                         'h-full rounded-full transition-all',
-                        isCompleted ? 'bg-green-500' : 'bg-gradient-to-r from-amber-500 to-orange-500'
+                        isCompleted ? 'bg-green-500' : 'bg-gradient-to-r from-amber-400 to-amber-500'
                       )}
                       style={{ width: `${percent}%` }}
                     />
@@ -1944,7 +2003,7 @@ function ChallengesModal({ open, onClose, clientId }: { open: boolean; onClose: 
                 </div>
 
                 {ch.reward_description && (
-                  <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200">
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
                     <Gift size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-xs font-medium text-amber-700">Récompense</p>
@@ -1963,11 +2022,11 @@ function ChallengesModal({ open, onClose, clientId }: { open: boolean; onClose: 
 
 function OrderHistoryCard({ order, active }: { order: Order; active?: boolean }) {
   return (
-    <Card className="p-3">
+    <Card className="p-4 border-slate-100">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-900">{order.order_number}</p>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             {order.order_items?.length || 0} article(s) - {formatPrice(order.total_amount)}
           </p>
           <p className="text-xs text-slate-400 mt-0.5">
