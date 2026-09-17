@@ -247,7 +247,7 @@ function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onS
   const featuredDishes = availableMenus.slice(0, 3);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       {/* Hero section - clean, no image */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-16 max-w-6xl mx-auto w-full py-16 lg:py-24">
         <div className="flex items-center gap-2.5 mb-6">
@@ -294,10 +294,11 @@ function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onS
       {onStaffLogin && !profile && (
         <button
           onClick={onStaffLogin}
-          className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md text-slate-400 hover:text-slate-700 hover:bg-white border border-slate-200 shadow-sm transition-all flex items-center justify-center z-20"
+          className="absolute top-5 right-5 flex items-center gap-2 px-3.5 h-10 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 hover:bg-slate-200 border border-slate-200 shadow-sm transition-all z-20"
           title="Espace staff"
         >
-          <ChefHat size={18} />
+          <ChefHat size={16} />
+          <span className="text-xs font-medium">Staff</span>
         </button>
       )}
     </div>
