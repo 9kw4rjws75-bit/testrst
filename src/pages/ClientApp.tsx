@@ -188,7 +188,7 @@ function FloatingBubbles({
   cartCount: number;
 }) {
   return (
-    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none hidden sm:block">
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none">
       <div className="flex items-center justify-center gap-3 pointer-events-auto">
         <button
           onClick={() => onNav('cart')}
@@ -290,14 +290,14 @@ function HomePage({ onNav, onStaffLogin }: { onNav: (p: ClientPage) => void; onS
         )}
       </div>
 
-      {/* Staff login - very discreet */}
+      {/* Staff login - discreet but visible */}
       {onStaffLogin && !profile && (
         <button
           onClick={onStaffLogin}
-          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-50 text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all flex items-center justify-center z-20"
+          className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md text-slate-400 hover:text-slate-700 hover:bg-white border border-slate-200 shadow-sm transition-all flex items-center justify-center z-20"
           title="Espace staff"
         >
-          <ChefHat size={16} />
+          <ChefHat size={18} />
         </button>
       )}
     </div>
