@@ -438,3 +438,31 @@ export async function validateRewardCode(code: string, orderTotal: number): Prom
     error: null,
   };
 }
+
+export async function validateRewardCodeStaff(code: string, orderTotal: number): Promise<{
+  valid: boolean;
+  discountAmount: number;
+  discountType: string | null;
+  rewardTitle: string | null;
+  clientName: string | null;
+  error: string | null;
+}> {
+  const { data, error } = await supabase.rpc('validate_reward_code_staff', {
+    code_input: code.toUpperCase(),
+    order_total: orderTotal,
+  });
+  if (error) return { valid: false, discountAmount: 0, discountType: null, rewardTitle: null, clientName: null, error: error.message };
+  const result = data as any;
+  if (!result || !result[0] || !result[0].valid) {
+    return { valid: false, discountAmount: 0, discountType: null, rewardTitle: null, clientName: null, error: 'Code invalide ou déjà utilisé.' };
+  }
+  const row = result[0];
+  return {
+    valid: true,
+    discountAmount: Number(row.discount_amount) || 0,
+    discountType: row.discount_type,
+    rewardTitle: row.reward_title,
+    clientName: row.client_name,
+    error: null,
+  };
+}

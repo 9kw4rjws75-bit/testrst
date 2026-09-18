@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ChefHat, ClipboardList, CalendarDays, LogOut, Search, Phone, MapPin, Bike, Utensils, Clock, Package, CircleCheck as CheckCircle2, X, Plus, Minus, Trash2, Eye, TrendingUp, Smartphone, Wallet, CreditCard, Banknote, Printer, Ban, Star, KeyRound, Tag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { useDishes, createOrder, decrementDailyMenuQuantity, validateRewardCode } from '@/lib/hooks';
+import { useDishes, createOrder, decrementDailyMenuQuantity, validateRewardCodeStaff } from '@/lib/hooks';
 import type { CartItem } from '@/types';
 import {
   ORDER_STATUS_LABELS,
@@ -172,7 +172,7 @@ function OrdersManagement() {
     if (!rewardCode.trim()) return;
     setRewardValidating(true);
     setRewardError(null);
-    const { valid, discountAmount, rewardTitle, error } = await validateRewardCode(rewardCode, createTotal);
+    const { valid, discountAmount, rewardTitle, error } = await validateRewardCodeStaff(rewardCode, createTotal);
     setRewardValidating(false);
     if (valid) {
       setRewardDiscount(discountAmount);

@@ -144,7 +144,7 @@ export interface CartItem {
 
 export type ChallengeType = 'orders_count' | 'spending_amount' | 'orders_streak';
 export type ChallengeStatus = 'active' | 'completed' | 'cancelled';
-export type RewardStatus = 'available' | 'claimed' | 'expired';
+export type RewardStatus = 'available' | 'claimed' | 'expired' | 'used';
 export type SelectionMode = 'leaderboard' | 'lottery';
 export type DiscountType = 'percentage' | 'fixed' | 'free_order';
 

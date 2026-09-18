@@ -38,10 +38,12 @@ import {
   Soup,
   IceCream,
   GlassWater,
+  KeyRound,
+  Tag,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useDailyMenu, createOrder, fetchOrderByNumber, createReservation, useRestaurantSettings, useWeeklyMenus, useClientOrders, useClientRewards, useActiveChallenges, useClientProgress, claimReward } from '@/lib/hooks';
+import { useDailyMenu, createOrder, fetchOrderByNumber, createReservation, useRestaurantSettings, useWeeklyMenus, useClientOrders, useClientRewards, useActiveChallenges, useClientProgress, claimReward, validateRewardCode } from '@/lib/hooks';
 import {
   DISH_CATEGORY_LABELS,
   DISH_CATEGORY_COLORS,
@@ -697,9 +699,31 @@ function CartPage({
   const [error, setError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [deliveryKm, setDeliveryKm] = useState<number | null>(null);
+  const [rewardCode, setRewardCode] = useState('');
+  const [rewardDiscount, setRewardDiscount] = useState(0);
+  const [rewardValidating, setRewardValidating] = useState(false);
+  const [rewardApplied, setRewardApplied] = useState<{ title: string; amount: number } | null>(null);
+  const [rewardError, setRewardError] = useState<string | null>(null);
 
   const deliveryFee = deliveryKm !== null ? computeDeliveryFee(deliveryKm, feeBase, feePerKm) : 0;
-  const grandTotal = cartTotal + (orderType === 'livraison' ? deliveryFee : 0);
+  const grandTotal = Math.max(0, cartTotal + (orderType === 'livraison' ? deliveryFee : 0) - rewardDiscount);
+
+  const handleValidateRewardCode = async () => {
+    if (!rewardCode.trim()) return;
+    setRewardValidating(true);
+    setRewardError(null);
+    const { valid, discountAmount, rewardTitle, error } = await validateRewardCode(rewardCode, cartTotal);
+    setRewardValidating(false);
+    if (valid) {
+      setRewardDiscount(discountAmount);
+      setRewardApplied({ title: rewardTitle || 'Réduction', amount: discountAmount });
+      setRewardError(null);
+    } else {
+      setRewardError(error || 'Code invalide.');
+      setRewardDiscount(0);
+      setRewardApplied(null);
+    }
+  };
 
   const useMyLocation = () => {
     setLocating(true);
@@ -804,6 +828,10 @@ function CartPage({
     setSuccessOrder(order);
     onClear();
     setCheckoutOpen(false);
+    setRewardCode('');
+    setRewardDiscount(0);
+    setRewardApplied(null);
+    setRewardError(null);
   };
 
   if (successOrder) {
@@ -1087,6 +1115,45 @@ function CartPage({
             rows={2}
           />
 
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-slate-700">Code de récompense (optionnel)</label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={rewardCode}
+                  onChange={(e) => {
+                    setRewardCode(e.target.value.toUpperCase());
+                    setRewardApplied(null);
+                    setRewardDiscount(0);
+                    setRewardError(null);
+                  }}
+                  placeholder="ABCD1234"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm font-mono uppercase"
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={handleValidateRewardCode}
+                disabled={rewardValidating || !rewardCode.trim()}
+                className="whitespace-nowrap"
+              >
+                {rewardValidating ? <LoadingSpinner size={14} /> : <Tag size={14} className="mr-1" />}
+                Appliquer
+              </Button>
+            </div>
+            {rewardError && <p className="text-sm text-red-600">{rewardError}</p>}
+            {rewardApplied && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200">
+                <CheckCircle2 size={14} className="text-green-600 flex-shrink-0" />
+                <p className="text-xs text-green-700">
+                  {rewardApplied.title} appliqué — {formatPrice(rewardApplied.amount)} de réduction
+                </p>
+              </div>
+            )}
+          </div>
+
           <Card className="p-4 bg-slate-50 border-slate-100">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
@@ -1097,6 +1164,12 @@ function CartPage({
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-500">Frais de livraison</span>
                   <span className="font-medium text-slate-900">{formatPrice(deliveryFee)}</span>
+                </div>
+              )}
+              {rewardApplied && rewardDiscount > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-green-600">Réduction</span>
+                  <span className="font-medium text-green-600">-{formatPrice(rewardDiscount)}</span>
                 </div>
               )}
               <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
@@ -1757,6 +1830,7 @@ function RewardsModal({ open, onClose, clientId }: { open: boolean; onClose: () 
 
   const availableRewards = rewards.filter((r) => r.status === 'available');
   const claimedRewards = rewards.filter((r) => r.status === 'claimed');
+  const usedRewards = rewards.filter((r) => r.status === 'used');
   const expiredRewards = rewards.filter((r) => r.status === 'expired');
 
   return (
@@ -1808,6 +1882,19 @@ function RewardsModal({ open, onClose, clientId }: { open: boolean; onClose: () 
             </div>
           )}
 
+          {usedRewards.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                Déjà utilisés ({usedRewards.length})
+              </h4>
+              <div className="space-y-2 opacity-60">
+                {usedRewards.map((reward) => (
+                  <RewardCard key={reward.id} reward={reward} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {expiredRewards.length > 0 && (
             <div>
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
@@ -1847,6 +1934,7 @@ function RewardCard({
           'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0',
           reward.status === 'available' ? 'bg-amber-500 text-white' :
           reward.status === 'claimed' ? 'bg-green-500 text-white' :
+          reward.status === 'used' ? 'bg-slate-400 text-white' :
           'bg-slate-300 text-white'
         )}>
           <Gift size={20} />
@@ -1876,7 +1964,7 @@ function RewardCard({
               </span>
             )}
           </div>
-          {reward.reward_code && (reward.status === 'claimed' || reward.status === 'available') && (
+          {reward.reward_code && reward.status === 'claimed' && (
             <div className="mt-3 p-3 rounded-lg bg-slate-900 text-white flex items-center justify-between gap-2">
               <div>
                 <p className="text-[10px] text-slate-400 uppercase tracking-wide">Votre code</p>
@@ -1912,6 +2000,13 @@ function RewardCard({
             <p className="text-xs text-slate-400 mt-2">
               Utilisez ce code lors de votre prochaine commande pour profiter de votre réduction.
             </p>
+          )}
+
+          {reward.status === 'used' && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 border border-slate-200">
+              <CheckCircle2 size={14} className="text-slate-400 flex-shrink-0" />
+              <p className="text-xs text-slate-500 font-medium">Code déjà utilisé</p>
+            </div>
           )}
         </div>
       </div>

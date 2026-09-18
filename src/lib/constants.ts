@@ -208,12 +208,14 @@ export const REWARD_STATUS_LABELS: Record<RewardStatus, string> = {
   available: 'Disponible',
   claimed: 'Récupéré',
   expired: 'Expiré',
+  used: 'Déjà utilisé',
 };
 
 export const REWARD_STATUS_COLORS: Record<RewardStatus, string> = {
   available: 'bg-amber-100 text-amber-700 border-amber-200',
   claimed: 'bg-green-100 text-green-700 border-green-200',
   expired: 'bg-slate-100 text-slate-500 border-slate-200',
+  used: 'bg-slate-200 text-slate-500 border-slate-300',
 };
 
 export const SELECTION_MODE_LABELS: Record<SelectionMode, string> = {
